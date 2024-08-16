@@ -102,6 +102,12 @@ Add a peripheral device to a gateway. The following validation applies:
 ### **DELETE /gateway/devices**
 Remove a device from a gateway by providing the `gatewayId` and `deviceId`.
 
+## Server Extra Features
+- The server contains a base abstract class to handle repositories with repeated operations.
+- An exception handler is implemented to extract useful errors in the response.
+- Logging is performed using Winston with log files created per day.
+- The server handles graceful shutdown correctly.
+
 ## Unit Tests
 The project includes unit tests to ensure that the core functionality works as expected. To run the tests, use the following command:
    ```bash

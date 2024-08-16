@@ -102,6 +102,12 @@ Add a peripheral device to a gateway. The following validation applies:
 ### **DELETE /gateway/devices**
 Remove a device from a gateway by providing the `gatewayId` and `deviceId`.
 
+## Unit Tests
+The project includes unit tests to ensure that the core functionality works as expected. To run the tests, use the following command:
+   ```bash
+   npm run test
+```
+
 # Architecture and Design Decisions
 
 ## Embedded Documents vs. References

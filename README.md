@@ -22,117 +22,122 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Gateway Management API
+This is a RESTful API built using Nest.js for managing gateways and their associated peripheral devices. It allows you to create gateways, add devices to gateways, retrieve gateway details, and remove devices from a gateway. The project includes meaningful unit tests to ensure functionality.
+
+## Features
+
+- **Create Gateway**: Store information about new gateways.
+- **Retrieve Gateways**: Retrieve a list of all gateways with their associated devices.
+- **Retrieve Specific Gateway**: Retrieve detailed information about a specific gateway.
+- **Add Device**: Add a peripheral device to a gateway, with validation to ensure no more than 10 devices per gateway.
+- **Remove Device**: Remove a peripheral device from a gateway.
 
 ## Installation
 
-```bash
-$ npm install
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/XMoSalahX/Managing-Gateway-Nest-Mongo.git
+
+2. Navigate into the project directory:
+    ```bash
+   cd Managing-Gateway-Nest-Mongo
+
+3. Install dependencies:
+    ```bash
+   npm install
+    
+4. Set up environment variables (e.g., for your MongoDB connection) in a .env file:
+    ```env
+   SWAGGER_ROUTE=api
+
+   SERVER_PORT=3000
+
+   SECRET_KEY=fortestcode
+
+   BCRYPT_PASSWORD=testajsdalk
+
+   SALT_ROUND=10
+
+   MONGODB_URI=mongodb+srv://XMoSalahX:Mohammed123@private.hpheqtq.mongodb.net/Geteways
+
+5. Run the development server:
+    ```bash
+   npm run start:dev
+
+## API Endpoints
+
+### **POST /gateway**
+Create a new gateway with the following fields:
+
+#### Request Body:
+```json
+{
+  "serialNumber": "string",  // Must be unique
+  "name": "string",           // Name of the gateway
+  "ipv4": "string",           // Valid IPv4 address
+  "devices": [                // Array of devices (maximum of 10 devices)
+    {
+      "uid": "number",        // Unique identifier for the device
+      "vendor": "string",     // Vendor name
+      "dateCreated": "Date",  // Date the device was created
+      "status": "ONLINE | OFFLINE"  // Status of the device (ONLINE or OFFLINE)
+    }
+  ]
+}
 ```
 
-## Running the app
+### **GET /gateway**
+Retrieve all stored gateways with their associated devices.
 
-```bash
-# development
-$ npm run start
+### **GET /gateway/:id**
+Retrieve details of a specific gateway by its ID.
 
-# watch mode
-$ npm run start:dev
+### **PATCH /gateway/:id**
+Add a peripheral device to a gateway. The following validation applies:
+- No more than 10 devices per gateway.
+- All device UIDs must be unique.
 
-# production mode
-$ npm run start:prod
-```
+### **DELETE /gateway/devices**
+Remove a device from a gateway by providing the `gatewayId` and `deviceId`.
 
-## Test
+# Architecture and Design Decisions
 
-```bash
-# unit tests
-$ npm run test
+## Embedded Documents vs. References
 
-# e2e tests
-$ npm run test:e2e
+In this implementation, **devices** are stored as embedded documents within the **gateway** collection rather than as references to a separate collection. This design choice was made after careful consideration of the project requirements and the context of the use case.
 
-# test coverage
-$ npm run test:cov
-```
+### Key Reasons for Using Embedded Documents:
 
-## Env
+1. **Atomicity**:
+   - Using embedded documents ensures that when a gateway and its devices are updated, the entire document is updated in a single atomic operation. This is crucial for maintaining consistency when devices are tightly coupled with the gateway.
 
-POSTGRES_USER=postgres
+2. **Performance**:
+   - Since devices are always accessed in conjunction with their parent gateway (ex: retrieving all devices for a specific gateway), embedding them directly within the gateway document eliminates the need for additional database queries to resolve references. This results in faster read operations.
 
-POSTGRES_PASSWORD=postgres
+3. **Simplicity**:
+   - By embedding devices within the gateway, the data model is kept simple and avoids the added complexity of managing references between different collections. This simplicity is advantageous for development and maintenance.
 
-POSTGRES_DB=posts
+4. **Limited Device Count**:
+   - The requirement to limit the number of devices associated with each gateway to a maximum of 10 devices makes embedding a practical solution. This limit ensures that the document size remains well within MongoDB's 16MB document size limit, making the embedded approach scalable for this specific use case.
 
-POSTGRES_PORT=5432
-
-POSTGRES_HOST=postgres
-
-SWAGGER_ROUTE=api
-
-SERVER_PORT=3000
-
-SECRET_KEY=fortestcode
-
-BCRYPT_PASSWORD=testajsdalk
-
-SALT_ROUND=10
-
-# Technical Notes
-
-## Server Environment
-
-- **Node.js version:** v20.5.1
-- **NestJS version:** 10.3.2
-- **TypeScript version:** 5.1.6
-- **PostgreSQL version:** 16.2
-
-## Server Extra Features
-
-Note: All features mentioned in the requirements are included.
-
-- The server contains a base abstract class to handle repositories with repeated operations.
-- An exception handler is implemented to extract useful errors in the response.
-- Logging is performed using Winston with log files created per day.
-- The server handles graceful shutdown correctly.
-
-## Business Logic
-
-- There are three user types in the system: ADMIN, EDITOR, and Reader.
-- When a user logs in, they retrieve their documents and posts if they exist.
-- Admins can access all features.
-- Editors can't modify admin users but can perform any update or removal operation on the entire app.
-- Users can only read.
-
-## User Scaling
-
-As we anticipate significant growth in user numbers, it's crucial to develop and implement robust strategies for scaling our user service infrastructure effectively. One key strategy is to utilize a load balancing architecture, which ensures that incoming traffic is evenly distributed across multiple instances of our application. This prevents any single instance from becoming overloaded, optimizing the use of our resources and enhancing the resilience of our system.
-
-Another vital technique is implementing advanced database sharding. This involves partitioning our database horizontally, spreading data across multiple database servers. By dividing our dataset into manageable shards, each server can handle a portion of the workload, reducing strain on individual nodes and improving scalability and fault tolerance.
-
-To further optimize performance, we can leverage cutting-edge caching mechanisms. These mechanisms store frequently accessed data in high-speed caches, minimizing the need for repeated database queries and significantly reducing latency. This leads to better system responsiveness and an enhanced user experience.
-
-In addition, adopting sophisticated horizontal scaling strategies allows us to deploy our application across multiple servers or containerized environments. This enables us to seamlessly expand our computational resources in response to growing user demands, ensuring optimal performance and scalability across various operational scenarios.
-
-We can also integrate Content Delivery Networks (CDNs) to cache and deliver static assets to users more efficiently. By caching content closer to users, CDNs reduce latency, improve application performance, and enhance the overall quality of service delivery.
-
-Furthermore, implementing meticulous data optimization methodologies, such as efficient indexing and query optimization techniques, helps maintain optimal data retrieval performance, even as our data volumes increase. This ensures that we uphold stringent service level agreements and provide seamless user experiences.
-
-Finally, we can harness the power of automated scalability through sophisticated autoscaling mechanisms offered by leading cloud service providers. These mechanisms dynamically adjust computational resources based on real-time traffic patterns and workload demands, ensuring unparalleled system agility, cost optimization, and operational efficiency. This empowers us to navigate volatile market dynamics and evolving user demands seamlessly.
+5. **No Cross-Gateway Device Association**:
+   - No project requirements exist for devices to be associated with multiple gateways. Also, you don't need to update or reflect changes across multiple gateways. Given these constraints, the embedded document approach is optimal, aligning with the project's focus on isolated gateway-device relationships.
 
 
-## Support
+### Limitations and Considerations:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. **Document Size Limit**:
+   - MongoDB enforces a 16MB document size limit. While this is not a concern for this project due to the limited number of devices per gateway, it is a factor to consider for future scalability.
 
-## Stay in touch
+2. **Flexibility**:
+   - Embedded documents are less flexible if future requirements change, such as needing to access devices independently of gateways or associating devices with multiple gateways. If such flexibility becomes necessary, a referenced model might be more appropriate.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Conclusion:
+Given the project constraints, such as a limited number of devices per gateway, no need for cross-gateway device association, and the absence of any requirements for devices to join multiple gateways, the embedded document approach is the most efficient and appropriate choice for this application. Should the project requirements evolve to require greater flexibility or scalability, a shift to a referenced model could be considered.
 
-## License
+## Swagger Documentation
+The API is documented using Swagger. After starting the development server, you can view the Swagger documentation at http://localhost:3000/api
 
-Nest is [MIT licensed](LICENSE).
+
